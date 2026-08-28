@@ -1,35 +1,73 @@
 # nvapi
 
-Minimal project skeleton with the files GitHub actually needs: a clear README, license, changelog, and ignore rules.
+Query NVIDIA GPU inventory, VRAM pressure, and driver info. Uses `nvidia-smi` when it is installed; otherwise a deterministic mock backend so tests and local demos still run.
 
-## What’s included
-
-| File | Why it stays |
-|------|----------------|
-| `README.md` | How to use and contribute |
-| `LICENSE` | MIT terms |
-| `CHANGELOG.md` | Version history ([Keep a Changelog](https://keepachangelog.com/en/1.0.0/)) |
-| `.gitignore` | Keeps secrets, build junk, and OS files out of git |
-
-Empty changelog subsections and placeholder-only docs were removed.
-
-## Getting started
+## Install
 
 ```bash
-git clone https://github.com/mcjw4t2vhw-lgtm/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.git
-cd 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
+python -m pip install -e ".[dev]"
 ```
 
-## Versioning
+## Library
 
-Releases follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Record notable changes in `CHANGELOG.md`.
+```python
+from nvapi import NvApi
 
-## Contributing
+api = NvApi.mock()          # always available
+# api = NvApi.auto()        # nvidia-smi if present, else mock
+# api = NvApi.nvidia_smi()  # require a real driver
 
-1. Create a branch from `main`.
-2. Keep secrets and generated artifacts out of commits (see `.gitignore`).
-3. Update `CHANGELOG.md` under `[Unreleased]` when behavior changes.
-4. Open a pull request.
+for gpu in api.list_gpus():
+    print(gpu.index, gpu.name, gpu.status, gpu.memory.used_percent)
+
+print(api.summary())
+print(api.driver())
+```
+
+GPU status:
+
+| Status | When |
+|--------|------|
+| `healthy` | temp &lt; 80 °C and VRAM &lt; 90 % |
+| `degraded` | temp ≥ 80 °C or VRAM ≥ 90 % |
+| `critical` | temp ≥ 90 °C or VRAM ≥ 98 % |
+
+## CLI
+
+```bash
+nvapi --backend mock list
+nvapi --backend mock get 0
+nvapi --backend mock summary
+nvapi --backend mock driver
+```
+
+## HTTP API
+
+```bash
+uvicorn nvapi.api:app --host 0.0.0.0 --port 8000
+```
+
+| Method | Path | Notes |
+|--------|------|--------|
+| GET | `/health` | Inventory roll-up; `ok` is false if any GPU is critical |
+| GET | `/gpus` | All devices |
+| GET | `/gpus/{index}` | One device (`404` if missing) |
+| GET | `/driver` | Driver version and backend name |
+
+## Tests
+
+```bash
+pytest
+```
+
+CI runs the same command on every push via `.github/workflows/tests.yml`.
+
+## Layout
+
+```
+nvapi/          library, CLI, FastAPI app
+tests/          pytest suite
+```
 
 ## License
 
