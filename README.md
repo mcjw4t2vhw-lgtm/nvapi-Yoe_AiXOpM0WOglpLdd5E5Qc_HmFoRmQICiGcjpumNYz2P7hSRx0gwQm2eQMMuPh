@@ -57,10 +57,9 @@ uvicorn nvapi.api:app --host 0.0.0.0 --port 8000
 ## Tests
 
 ```bash
+python -m pip install -e ".[dev]"
 pytest
 ```
-
-CI runs the same command on every push via `.github/workflows/tests.yml`.
 
 ## Layout
 

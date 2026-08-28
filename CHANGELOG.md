@@ -15,7 +15,6 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Health classification from temperature and VRAM pressure
 - CLI (`nvapi list|get|summary|driver`) and FastAPI HTTP surface
 - pytest suite covering models, service, CSV parser, HTTP, and CLI
-- GitHub Actions workflow to run `pytest` on push and pull request
 
 ## [1.0.0] - 2026-08-08
 
